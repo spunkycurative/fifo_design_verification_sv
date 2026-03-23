@@ -10,11 +10,12 @@ class monitor;
   task run();
     forever begin
       @(posedge fif.clk);
+      #1;
       //no write when full without read
-      assert(!(fif.wr && fif.full && !fif.rd));
-      $error("[ASSERT]:fifo overflow:write when full");
-      assert(!(fif.rd && fif.empty));
-      $error("[ASSERT]:fifo underflow:read when empty");
+      assert(!(fif.wr && fif.full && !fif.rd))
+       else $error("[ASSERT]:fifo overflow:write when ful");
+      assert(!(fif.rd && fif.empty))
+      else $error("[ASSERT]:fifo underflow:read when empty");
       tr = new();
       tr.wr    = fif.wr;
       tr.rd    = fif.rd;
