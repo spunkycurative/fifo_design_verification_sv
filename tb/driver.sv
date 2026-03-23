@@ -19,20 +19,20 @@ class driver;
     $display("[DRV]:reset done");
     $display("--------------------");
   endtask
-  
   task run();
-    forever begin
-      mbx.get(datac);
-      @(posedge fif.clk);
-      fif.wr<=datac.wr;
-      fif.rd<=datac.rd;
-      fif.din<=datac.din;
-      
-      @(posedge fif.clk);
-      fif.wr<=0;
-      fif.rd<=0;
-      
-      
-    end
-  endtask
+  forever begin
+    mbx.get(datac);
+
+    @(posedge fif.clk);
+    fif.wr  <= datac.wr && !fif.full;
+    fif.rd  <= datac.rd && !fif.empty;
+    fif.din <= datac.din;
+
+    @(posedge fif.clk);  // HOLD FOR FULL CYCLE
+
+    fif.wr <= 0;
+    fif.rd <= 0;
+  end
+endtask
+  
 endclass
