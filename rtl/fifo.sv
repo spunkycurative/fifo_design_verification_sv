@@ -15,6 +15,7 @@ input clk,rst,wr,rd,
         wptr<=0;
         rptr<=0;
         cnt<=0;
+        dout<=0;
         
       end
     
@@ -34,14 +35,14 @@ input clk,rst,wr,rd,
         cnt<=cnt-1;
         
       end
-    else if(wr && rd && !full && !empty)
-      begin
-        mem[wptr]<=din;
-        dout<=wptr+1;
-        rptr<=rptr+1;
-        cnt<=cnt;
-        
-      end 
+  else if(wr && rd && !full && !empty)
+begin
+  mem[wptr] <= din;      // write new data
+  dout <= mem[rptr];     // read old data
+  wptr <= wptr + 1;      // increment write pointer
+  rptr <= rptr + 1;      // increment read pointer
+  cnt  <= cnt;           // count unchanged
+end
     
     //READ AND WRITE WITH FULL FIFO
     else if(wr && rd && full)
@@ -55,14 +56,12 @@ input clk,rst,wr,rd,
     
     //READ AND WRITE WITH EMPTY FIFO
     
-    else if(wr && rd && empty)
-      begin
-        mem[wptr]<=din;
-        dout<=mem[rptr];
-        wptr<=wptr+1;
-        rptr<=rptr+1;
-        cnt<=cnt;
-      end
+   else if(wr && rd && empty)
+begin
+  mem[wptr] <= din;
+  wptr <= wptr + 1;
+  cnt  <= cnt + 1;   // behaves like WRITE only
+end
     
   end
  
@@ -71,12 +70,5 @@ input clk,rst,wr,rd,
   
 endmodule
   
-  interface fifo_if;
-    
-    logic clk,rd,wr;
-    logic full,empty;
-    logic [7:0] din,dout;
-    logic rst;
-    
-  endinterface
+
   
