@@ -1,5 +1,6 @@
 # fifo_design_verification_sv
-Overview
+
+# Overview
 
 This project implements and verifies a synchronous FIFO (First-In-First-Out) memory using Verilog/SystemVerilog. The design supports write, read, and simultaneous operations with proper handling of full and empty conditions. A self-checking testbench is developed using class-based verification concepts.
 
