@@ -1,8 +1,11 @@
-// Code your design here
+
 module fifo(
 input clk,rst,wr,rd,
   input [7:0] din,output reg [7:0] dout,
-  output full,empty
+  output full,empty,
+  output [4:0] cnt_dbg,
+  output [3:0] wptr_dbg,
+  output [3:0] rptr_dbg
 );
   
   reg [3:0] wptr=0,rptr=0;
@@ -20,7 +23,7 @@ input clk,rst,wr,rd,
       end
     
     //WRITE ONLY
-    if(wr&&!full && !(rd && !empty))
+    else if(wr&&!full && !(rd && !empty))
       begin
         mem[wptr]<=din;
         wptr<=wptr+1;
@@ -64,11 +67,13 @@ begin
 end
     
   end
- 
+    
+    assign cnt_dbg = cnt;
+    assign wptr_dbg = wptr;
+    assign rptr_dbg = rptr;
     assign empty = (cnt == 0);
     assign full  = (cnt == 16);
   
 endmodule
-  
 
   
