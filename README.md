@@ -1,120 +1,184 @@
-# fifo_design_verification_sv
+# FIFO Design Verification using SystemVerilog
 
-# Overview
+## Overview
 
-This project implements and verifies a synchronous FIFO (First-In-First-Out) memory using Verilog/SystemVerilog. The design supports write, read, and simultaneous operations with proper handling of full and empty conditions. A self-checking testbench is developed using class-based verification concepts.
+This project implements and verifies a synchronous FIFO (First-In-First-Out) using Verilog/SystemVerilog. The FIFO supports write, read, simultaneous read/write, and proper handling of overflow and underflow conditions. A self-checking, class-based verification environment is developed using SystemVerilog with assertions to validate the design.
 
-# Key Features
-1. Synchronous FIFO design (single clock)
-2. Depth: 16, Width: 8-bit
-3. Circular buffer implementation using pointers
-4. Full & Empty flag generation using counter
-5. Simultaneous read/write support
-6. Registered output (1-cycle read latency)
-7. Self-checking testbench with scoreboard
-8. Random stimulus generation
-9. Assertions for overflow and underflow detection
-    
+---
+
+# Features
+
+- Synchronous FIFO (Single Clock)
+- FIFO Depth: 16
+- Data Width: 8-bit
+- Circular buffer implementation using read/write pointers
+- Counter-based Full and Empty flag generation
+- Simultaneous Read & Write support
+- Registered output (1-cycle read latency)
+- Class-based verification environment
+- Mailbox-based communication
+- Self-checking scoreboard
+- SystemVerilog Assertions (SVA)
+- Dedicated Overflow Test
+- Easily extendable for Underflow, Random and Simultaneous Read/Write testing
+
+---
+
 # Design Details
+
 The FIFO is implemented using:
 
-Memory Array: mem[15:0]
-1. Pointers:
-    wptr → Write pointer
-    rptr → Read pointer
-2. Counter (cnt):
-    Tracks number of elements in FIFO
-    Used to generate:
-     empty = (cnt == 0)
-     full = (cnt == 16)
+- 16 × 8-bit memory array
+- Write Pointer (`wptr`)
+- Read Pointer (`rptr`)
+- Counter (`cnt`)
 
-###  Operations Supported
+Status flags are generated as:
 
-| Operation      | Condition        | Behavior                                  |
-|---------------|------------------|-------------------------------------------|
-| Write Only    | `wr=1, rd=0`     | Data written, `wptr++`, `cnt++`           |
-| Read Only     | `wr=0, rd=1`     | Data read, `rptr++`, `cnt--`              |
-| Simultaneous  | `wr=1, rd=1`     | Read & write together, `cnt` unchanged    |
-| Full Case     | `wr=1, full=1`   | Write blocked                            |
-| Empty Case    | `rd=1, empty=1`  | Read blocked                             |
+```
+empty = (cnt == 0)
+full  = (cnt == 16)
+```
 
+---
 
-Important Design Behavior:
--> Read Latency: 1 Clock Cycle
+# Supported Operations
 
-Data appears on dout one cycle after rd=1
-Due to registered output design
-Ensures stable and synthesizable hardware behavior
+| Operation | Condition | Description |
+|----------|-----------|-------------|
+| Write | wr=1, rd=0 | Stores data into FIFO |
+| Read | wr=0, rd=1 | Reads oldest data from FIFO |
+| Simultaneous Read/Write | wr=1, rd=1 | Performs read and write in same cycle |
+| Overflow | wr=1 when FIFO is Full | Write is ignored |
+| Underflow | rd=1 when FIFO is Empty | Read is ignored |
 
+---
 
-# Verification Environment:
-A class-based testbench is used with the following components:
-1. Transaction
-Contains wr, rd, din, dout, full, empty
-2. Generator
-Generates random read/write transactions
-Uses constraints for balanced stimulus
-3. Driver
-Drives DUT signals via virtual interface
-Handles valid read/write conditions
-4. Monitor
-Samples DUT outputs
-Includes assertions:
-Prevent write when full
-Prevent read when empty
-5. Scoreboard
-Uses queue model for reference
-Compares expected vs actual output
-Reports mismatches
-6. Environment
-Connects all components
-Controls simulation flow
+# Verification Environment
 
-# Waveform Explanation
-din shows input data being written
-dout updates only after read operations
-empty deasserts after first write
-full remains low (FIFO never filled completely)
-wptr, rptr, and cnt track internal FIFO state
+The verification environment follows a class-based architecture.
 
-*dout remains constant during write-only operations since data is only output during reads.
+### Transaction
+- Defines FIFO transaction fields
+- Contains write, read, input data, output data and status flags
 
-# Assertions Used
-assert(!(wr && full && !rd)) else $error("FIFO Overflow")
+### Generator
+- Generates FIFO transactions
+- Implements dedicated Overflow test
+- Can be extended for:
+  - Random Test
+  - Underflow Test
+  - Simultaneous Read/Write Test
 
-assert(!(rd && empty)) else $error("FIFO Underflow")
+### Driver
+- Receives transactions through mailbox
+- Drives DUT using virtual interface
+- Performs reset sequence
+- Applies synchronized FIFO transactions
+
+### Monitor
+- Samples DUT signals
+- Captures FIFO status and transactions
+- Sends observed transactions to scoreboard
+
+### Scoreboard
+- Queue-based reference model
+- Verifies expected vs actual output
+- Reports mismatches automatically
+
+### Environment
+- Connects all verification components
+- Configures mailboxes and virtual interface
+- Controls simulation flow (Pre-Test, Test, Post-Test)
+
+---
+
+# SystemVerilog Assertions
+
+The project includes assertions to verify FIFO functionality, including:
+
+- Overflow count check
+- Underflow count check
+- Full and Empty flag validation
+- Counter limit verification
+- Reset behavior
+- Counter increment/decrement checks
+- Simultaneous Read/Write counter check
+- Write pointer increment
+- Read pointer increment
+
+---
+
+# Simulation Results
+
+The verification environment successfully validates:
+
+- FIFO reset functionality
+- Sequential write operations
+- FIFO Full condition
+- Overflow handling
+- Counter behavior
+- Pointer updates
+- Status flag generation
+- Scoreboard comparison
+- Assertion-based protocol checking
+
+Simulation completes with:
+
+```
+Scoreboard Errors = 0
+```
+
+Overflow assertion is expected to trigger when an additional write is attempted after the FIFO becomes full, confirming correct protocol verification.
+
+---
 
 # Project Structure
+
 ```
-fifo-project/
+fifo_design_verification_sv/
 │
 ├── design/
 │   └── fifo.sv
 │
 ├── tb/
-|   ├── interface.sv
 │   ├── transaction.sv
 │   ├── generator.sv
 │   ├── driver.sv
 │   ├── monitor.sv
 │   ├── scoreboard.sv
 │   ├── environment.sv
-│   └── top.sv
+│   ├── fifo_assertions.sv
+│   ├── interface.sv
+│   └── testbench.sv
 │
 └── README.md
-
 ```
 
+---
 
+# Tools Used
 
+- SystemVerilog
+- Riviera-PRO EDU
+- EDA Playground
+- Git & GitHub
 
+---
 
+# Future Enhancements
 
+- Add constrained-random test generation for wider functional coverage.
+- Implement functional coverage to measure verification completeness.
+- Extend the environment to a UVM-based verification framework.
+- Verify asynchronous (dual-clock) FIFO implementation.
 
+---
 
+# Author
 
+**Shreya Sharma**
 
+B.Tech Electronics & Communication Engineering
 
-
-
-   
+Aspiring Design Verification Engineer
