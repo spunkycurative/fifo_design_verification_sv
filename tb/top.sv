@@ -4,7 +4,7 @@ module tb;
   fifo dut(
   fif.clk, fif.rst, fif.wr, fif.rd,
   fif.din, fif.dout,
-  fif.full, fif.empty,fif.cnt,fif.wptr,fif.rptr
+  fif.full, fif.empty,fif.cnt_dbg,fif.wptr_dbg,fif.rptr_dbg
 );
   // FIFO DUT
   initial fif.clk = 0;
