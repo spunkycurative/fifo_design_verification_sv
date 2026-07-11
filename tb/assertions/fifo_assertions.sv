@@ -2,10 +2,10 @@
 module fifo_assertions(fifo_if fif);
   
 property p_overflow_does_not_change_count;
-  @(posedge clk)
-  disable iff(rst)
-  (wr && full && !rd)
-  |=> cnt == $past(cnt);
+  @(posedge fif.clk)
+  disable iff(fif.rst)
+  (fif.wr && fif.full && !fif.rd)
+  |=> fif.cnt_dbg == $past(fif.cnt_dbg);
 endproperty
 
 assert property(p_overflow_does_not_change_count)
@@ -13,10 +13,10 @@ assert property(p_overflow_does_not_change_count)
     $error("FIFO count changed during overflow");
     
 property p_underflow_does_not_change_count;
-  @(posedge clk)
-  disable iff(rst)
-  (rd && empty && !wr)
-  |=> cnt == $past(cnt);
+  @(posedge fif.clk)
+  disable iff(fif.rst)
+  (fif.rd && fif.empty && !fif.wr)
+  |=> fif.cnt_dbg == $past(fif.cnt_dbg);
 endproperty
 
 assert property(p_underflow_does_not_change_count);
@@ -48,7 +48,7 @@ assert property(p_underflow_does_not_change_count);
         property p_cnt_max;
           @(posedge fif.clk)
           disable iff(fif.rst)
-          fif.cnt<=16;
+          fif.cnt_dbg<=16;
         endproperty
             
             assert property(p_cnt_max)
@@ -58,28 +58,28 @@ assert property(p_underflow_does_not_change_count);
         property p_empty_flag;
           @(posedge fif.clk)
           disable iff(fif.rst)
-          (fif.cnt==0) |-> fif.empty;
+          (fif.cnt_dbg==0) |-> fif.empty;
         endproperty
               assert property(p_empty_flag);
                 
         property p_full_flag;
           @(posedge fif.clk)
           disable iff(fif.rst)
-          (fif.cnt==16) |-> fif.full;
+          (fif.cnt_dbg==16) |-> fif.full;
         endproperty
                 assert property(p_full_flag);
        
         property p_write_increments_cnt;
           @(posedge fif.clk)
           disable iff(fif.rst)
-          (fif.wr && !fif.full && !fif.rd) |=> fif.cnt==$past(fif.cnt)+1; 
+          (fif.wr && !fif.full && !fif.rd) |=> fif.cnt_dbg==$past(fif.cnt_dbg)+1; 
         endproperty
                   assert property (p_write_increments_cnt);
                     
         property p_read_decrements_cnt;
           @(posedge fif.clk)
           disable iff(fif.rst)
-          (fif.rd && !fif.empty && !fif.wr) |=> fif.cnt==$past(fif.cnt)-1;
+          (fif.rd && !fif.empty && !fif.wr) |=> fif.cnt_dbg==$past(fif.cnt_dbg)-1;
         endproperty
                     
                     assert property (p_read_decrements_cnt);
@@ -87,7 +87,7 @@ assert property(p_underflow_does_not_change_count);
         property p_simultaneous_read_write;
           @(posedge fif.clk)
           disable iff(fif.rst)
-          (fif.rd && fif.wr && !fif.empty && !fif.full) |=> fif.cnt==$past(fif.cnt);
+          (fif.rd && fif.wr && !fif.empty && !fif.full) |=> fif.cnt_dbg==$past(fif.cnt_dbg);
         endproperty
                       
                       assert property (p_simultaneous_read_write);  
@@ -95,7 +95,7 @@ assert property(p_underflow_does_not_change_count);
        property p_wptr_increments;
          @(posedge fif.clk)
          disable iff(fif.rst)
-         (fif.wr && !fif.full && !fif.rd) |=> fif.wptr==$past(fif.wptr)+1;
+         (fif.wr && !fif.full && !fif.rd) |=> fif.wptr_dbg==$past(fif.wptr_dbg)+1;
        endproperty
                         
                         assert property (p_wptr_increments);
@@ -103,10 +103,11 @@ assert property(p_underflow_does_not_change_count);
        property p_rptr_increments;
          @(posedge fif.clk)
          disable iff(fif.rst)
-         (fif.rd && !fif.empty && !fif.wr) |=> fif.rptr==$past(fif.rptr)+1;
+         (fif.rd && !fif.empty && !fif.wr) |=> fif.rptr_dbg==$past(fif.rptr_dbg)+1;
        endproperty
                           
                           assert property (p_rptr_increments);                      
                             
                           
 endmodule
+
