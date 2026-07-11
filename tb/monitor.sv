@@ -23,7 +23,7 @@ class monitor;
       $display("[MON]: wr=%0d rd=%0d din=%0d dout=%0d full=%0d empty=%0d",
                tr.wr, tr.rd, tr.din, tr.dout, tr.full, tr.empty);
       $display("[MON] cnt=%0d wptr=%0d full=%0d empty=%0d wr=%0d rd=%0d",
-         fif.cnt, fif.wptr, fif.full, fif.empty, fif.wr, fif.rd);
+         fif.cnt_dbg, fif.wptr_dbg, fif.full, fif.empty, fif.wr, fif.rd);
     end
   endtask
 endclass
